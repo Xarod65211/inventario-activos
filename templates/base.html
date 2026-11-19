@@ -1,0 +1,43 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}{% endblock %} · Inventario de activos</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+{% with u=request.resolver_match.url_name %}
+<div class="marco">
+    <header class="movil">
+        <a href="{% url 'panel' %}">Inventario de activos</a>
+        <button type="button" aria-expanded="false" aria-controls="lateral" onclick="const l=document.getElementById('lateral');l.classList.toggle('abierto');this.setAttribute('aria-expanded',l.classList.contains('abierto'));this.textContent=l.classList.contains('abierto')?'Cerrar menú':'Menú'">Menú</button>
+    </header>
+    <aside class="lateral" id="lateral">
+        <a class="marca" href="{% url 'panel' %}">Inventario de activos</a>
+        <nav aria-label="Menú principal">
+            <div class="grupo">General</div>
+            <a href="{% url 'panel' %}" {% if u == 'panel' %}aria-current="page"{% endif %}>Panel</a>
+            <a href="{% url 'activos' %}" {% if u in 'activos activo activo_nuevo activo_editar' %}aria-current="page"{% endif %}>Activos</a>
+            <a href="{% url 'mantenimientos' %}" {% if u == 'mantenimientos' %}aria-current="page"{% endif %}>Mantenimientos</a>
+            <a href="{% url 'responsables' %}" {% if u == 'responsables' %}aria-current="page"{% endif %}>Responsables</a>
+            <div class="grupo">Herramientas</div>
+            <a href="{% url 'etiquetas' %}" {% if u == 'etiquetas' %}aria-current="page"{% endif %}>Etiquetas QR</a>
+            {% if rol != 'consulta' %}<a href="{% url 'importar' %}" {% if u == 'importar' %}aria-current="page"{% endif %}>Importar desde Excel</a>{% endif %}
+        </nav>
+        <div class="usuario">
+            <div>{{ user.get_full_name|default:user.username }}</div>
+            <div class="pequeno" style="color:#94a3b8">{% if rol == 'admin' %}Administrador{% elif rol == 'tecnico' %}Técnico{% else %}Consulta{% endif %}</div>
+            <form method="post" action="{% url 'logout' %}" style="margin-top:12px">{% csrf_token %}<button type="submit">Cerrar sesión</button></form>
+        </div>
+    </aside>
+    <main class="principal">
+        <div class="contenido">
+            {% for m in messages %}<div class="aviso {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
+            {% block contenido %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% endwith %}
+</body>
+</html>

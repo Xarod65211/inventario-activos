@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block titulo %}Importar desde Excel{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><h1>Importar desde Excel</h1>
+    <p>Primero se revisa el archivo sin guardar nada. Si una sola fila tiene un problema, no se importa ninguna.</p></div></div>
+<div class="rejilla r3">
+    <form method="post" enctype="multipart/form-data" class="tarjeta relleno" style="align-self:start">
+        {% csrf_token %}
+        <div class="campo"><label for="{{ form.archivo.id_for_label }}">{{ form.archivo.label }}</label>{{ form.archivo }}{{ form.archivo.errors }}</div>
+        <div class="campo" style="display:flex;gap:8px;align-items:flex-start">{{ form.confirmar }}<label for="{{ form.confirmar.id_for_label }}" style="font-weight:400">{{ form.confirmar.label }}</label></div>
+        <button class="boton" type="submit" style="width:100%">Subir archivo</button>
+        <p class="pequeno suave">Columnas requeridas: {{ columnas|join:', ' }}. La categoría y la ubicación deben existir. Fecha en dd/mm/aaaa.</p>
+    </form>
+    <section class="tarjeta col2" aria-labelledby="t-rev">
+        <h2 id="t-rev">Resultado de la revisión</h2>
+        {% if revision %}
+            {% for e in revision.errores_generales %}<p class="aviso error" style="margin:16px">{{ e }}</p>{% endfor %}
+            {% if revision.filas %}
+            <p style="padding:12px 20px 0;margin:0"><strong>{{ revision.validas }}</strong> de {{ revision.filas|length }} filas listas para importar.</p>
+            <div class="desplazable" style="margin-top:12px"><table>
+                <thead><tr><th>Fila</th><th>Nombre</th><th>Serie</th><th>Resultado</th></tr></thead>
+                <tbody>{% for f in revision.filas %}
+                    <tr><td class="cifra">{{ f.fila }}</td><td>{{ f.nombre }}</td><td class="cifra">{{ f.serie }}</td>
+                    <td>{% if f.problemas %}<span class="estado error">{{ f.problemas|join:'; ' }}</span>{% else %}<span class="estado ok">Lista</span>{% endif %}</td></tr>
+                {% endfor %}</tbody>
+            </table></div>
+            {% endif %}
+        {% else %}<p class="vacio">Suba un archivo para ver la revisión.</p>{% endif %}
+    </section>
+</div>
+{% endblock %}

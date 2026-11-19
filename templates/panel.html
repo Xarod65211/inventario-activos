@@ -1,0 +1,50 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block titulo %}Panel{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><h1>Panel</h1><p>Estado del inventario y mantenimientos que necesitan atención.</p></div></div>
+
+<div class="rejilla r4">
+    <a class="tarjeta kpi" href="{% url 'activos' %}">Activos en uso<strong class="cifra">{{ total }}</strong></a>
+    <a class="tarjeta kpi" href="{% url 'activos' %}?sin_responsable=1">Sin responsable asignado<strong class="cifra">{{ sin_responsable }}</strong></a>
+    <a class="tarjeta kpi" href="{% url 'mantenimientos' %}">Mantenimientos vencidos<strong class="cifra" {% if vencidos %}style="color:var(--error)"{% endif %}>{{ vencidos }}</strong></a>
+    <div class="tarjeta kpi">Valor de compra (Bs)<strong class="cifra">{{ valor|floatformat:0|intcomma }}</strong></div>
+</div>
+
+<div class="rejilla r3 separado">
+    <section class="tarjeta col2" aria-labelledby="t-mant">
+        <h2 id="t-mant">Mantenimientos atrasados y de los próximos 30 días</h2>
+        {% if atrasados or proximos %}
+        <div class="desplazable" style="margin-top:12px"><table>
+            <thead><tr><th>Activo</th><th>Tipo</th><th>Programado</th><th>Situación</th></tr></thead>
+            <tbody>
+            {% for m in atrasados %}<tr><td><a href="{{ m.activo.get_absolute_url }}">{{ m.activo }}</a></td><td>{{ m.get_tipo_display }}</td><td class="cifra">{{ m.programado|date:'d/m/Y' }}</td><td><span class="estado error">Vencido hace {{ m.programado|timesince }}</span></td></tr>{% endfor %}
+            {% for m in proximos %}<tr><td><a href="{{ m.activo.get_absolute_url }}">{{ m.activo }}</a></td><td>{{ m.get_tipo_display }}</td><td class="cifra">{{ m.programado|date:'d/m/Y' }}</td><td><span class="estado alerta">En {{ m.programado|timeuntil }}</span></td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+        {% else %}<p class="vacio">No hay mantenimientos pendientes en los próximos 30 días.</p>{% endif %}
+    </section>
+    <section class="tarjeta" aria-labelledby="t-cat">
+        <h2 id="t-cat">Activos por categoría</h2>
+        <div class="relleno">
+        {% with maximo=por_categoria.0.n %}
+        {% for c in por_categoria %}
+            <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between"><a href="{% url 'activos' %}?categoria={{ c.pk }}">{{ c.nombre }}</a><span class="cifra">{{ c.n }}</span></div>
+                <div class="barra" aria-hidden="true"><span style="width:{% widthratio c.n maximo 100 %}%"></span></div>
+            </div>
+        {% endfor %}
+        {% endwith %}
+        </div>
+    </section>
+</div>
+
+<section class="tarjeta separado" aria-labelledby="t-mov">
+    <h2 id="t-mov">Últimos movimientos</h2>
+    <div class="desplazable" style="margin-top:12px"><table>
+        <thead><tr><th>Fecha</th><th>Activo</th><th>Movimiento</th><th>Responsable</th><th>Registró</th></tr></thead>
+        <tbody>{% for m in movimientos %}
+            <tr><td class="cifra">{{ m.fecha|date:'d/m/Y H:i' }}</td><td><a href="{{ m.activo.get_absolute_url }}">{{ m.activo }}</a></td><td>{{ m.get_tipo_display }}</td><td>{{ m.responsable_nuevo|default:'Sin responsable' }}</td><td>{{ m.usuario.get_full_name|default:m.usuario.username }}</td></tr>
+        {% endfor %}</tbody>
+    </table></div>
+</section>
+{% endblock %}

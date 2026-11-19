@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block titulo %}Etiquetas QR{% endblock %}
+{% block contenido %}
+<div class="encabezado no-imprimir">
+    <div><h1>Etiquetas QR</h1><p>{{ activos|length }} etiquetas. Imprima en hoja carta y recorte por las líneas.</p></div>
+    <div class="acciones"><button class="boton" type="button" onclick="window.print()">Imprimir</button></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px">
+    {% for a in activos %}
+    <div style="display:flex;gap:10px;align-items:center;border:1px dashed #94a3b8;border-radius:8px;padding:10px;background:#fff;break-inside:avoid">
+        <img src="{% url 'qr' a.pk %}" alt="" width="84" height="84">
+        <div style="min-width:0">
+            <div class="pequeno suave">{{ empresa }}</div>
+            <div class="cifra" style="font:600 16px Poppins,sans-serif;color:var(--marino)">{{ a.codigo }}</div>
+            <div class="pequeno" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.nombre }}</div>
+        </div>
+    </div>
+    {% empty %}<p class="vacio">No hay activos para imprimir.</p>{% endfor %}
+</div>
+{% endblock %}

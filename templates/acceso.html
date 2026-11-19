@@ -1,0 +1,25 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Iniciar sesión · Inventario de activos</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body style="background:var(--marino);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 16px">
+    <p style="color:#fff;font:600 20px Poppins,sans-serif;margin:0">Inventario de activos</p>
+    <p style="color:#cbd5e1;margin:4px 0 24px">Sistema de demostración con datos ficticios</p>
+    <form method="post" class="tarjeta relleno" style="width:100%;max-width:440px;padding:32px">
+        {% csrf_token %}
+        <h1 style="font-size:20px;margin-bottom:20px">Iniciar sesión</h1>
+        {% if form.errors %}<p class="aviso error">Usuario o contraseña incorrectos.</p>{% endif %}
+        <div class="campo"><label for="id_username">Usuario</label><input class="control" id="id_username" name="username" autocomplete="username" autofocus required></div>
+        <div class="campo"><label for="id_password">Contraseña</label><input class="control" id="id_password" name="password" type="password" autocomplete="current-password" required></div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="boton" type="submit" style="width:100%">Entrar</button>
+        <div style="margin-top:24px;background:#f8fafc;border-radius:8px;padding:16px;font-size:13px">
+            <strong>Cuentas de demostración</strong> (contraseña <code>demo1234</code>)<br>
+            admin (Administrador) · tecnico (Técnico) · consulta (Consulta)
+        </div>
+    </form>
+</body>
+</html>

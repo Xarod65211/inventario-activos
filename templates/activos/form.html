@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if a %}Editar {{ a.codigo }}{% else %}Registrar activo{% endif %}{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div>
+    <a href="{% if a %}{{ a.get_absolute_url }}{% else %}{% url 'activos' %}{% endif %}">Volver</a>
+    <h1>{% if a %}Editar {{ a.codigo }}{% else %}Registrar activo{% endif %}</h1>
+    {% if not a %}<p>El código se genera con el prefijo de la categoría. Se programa solo el primer mantenimiento preventivo.</p>{% endif %}
+</div></div>
+<form method="post" class="tarjeta relleno" style="max-width:760px">
+    {% csrf_token %}
+    <div class="rejilla r2">
+    {% for campo in form %}
+        <div class="campo {% if campo.name == 'nombre' %}col2{% endif %}">
+            <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}
+        </div>
+    {% endfor %}
+    </div>
+    <div style="text-align:right"><button class="boton" type="submit">Guardar</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block titulo %}Responsables{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><h1>Responsables</h1><p>Personas a las que se asignan activos.</p></div></div>
+<div class="rejilla r3">
+    <section class="tarjeta desplazable col2" aria-label="Responsables">
+        <table>
+            <thead><tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Activos a cargo</th></tr></thead>
+            <tbody>{% for r in responsables %}
+                <tr><td><a href="{% url 'activos' %}?buscar={{ r.nombre|urlencode }}">{{ r.nombre }}</a></td><td>{{ r.cargo }}</td><td>{{ r.area }}</td><td class="cifra">{{ r.n }}</td></tr>
+            {% endfor %}</tbody>
+        </table>
+    </section>
+    {% if rol != 'consulta' %}
+    <form method="post" class="tarjeta relleno" style="align-self:start">
+        {% csrf_token %}
+        <h2 style="margin-bottom:12px">Registrar responsable</h2>
+        {% for campo in form %}<div class="campo"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}</div>{% endfor %}
+        <button class="boton" type="submit" style="width:100%">Registrar</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

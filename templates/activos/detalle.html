@@ -1,0 +1,76 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block titulo %}{{ a.codigo }}{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+    <div><a href="{% url 'activos' %}">Volver</a><h1>{{ a.codigo }} · {{ a.nombre }}</h1><p>{{ a.categoria }} · {{ a.ubicacion }}</p></div>
+    <div class="acciones">
+        <a class="boton secundario" href="{% url 'etiquetas' %}?id={{ a.pk }}">Imprimir etiqueta</a>
+        {% if rol != 'consulta' and a.estado != 'baja' %}<a class="boton secundario" href="{% url 'activo_editar' a.pk %}">Editar datos</a>{% endif %}
+    </div>
+</div>
+
+<div class="rejilla r3">
+    <section class="tarjeta relleno" aria-label="Datos del activo">
+        <span class="estado {% if a.estado == 'operativo' %}ok{% elif a.estado == 'mantenimiento' %}alerta{% else %}neutro{% endif %}">{{ a.get_estado_display }}</span>
+        <dl class="datos">
+            <dt>Responsable</dt><dd>{{ a.responsable|default:'Sin asignar' }}{% if a.responsable %} <span class="suave pequeno">· {{ a.responsable.cargo }}</span>{% endif %}</dd>
+            <dt>Marca y modelo</dt><dd>{{ a.marca|default:'—' }} {{ a.modelo }}</dd>
+            <dt>Serie</dt><dd class="cifra">{{ a.serie|default:'—' }}</dd>
+            <dt>Compra</dt><dd class="cifra">{{ a.fecha_compra|date:'d/m/Y' }} · Bs {{ a.valor_compra|floatformat:2|intcomma }}</dd>
+            <dt>Depreciación referencial ({{ a.categoria.vida_util_anios }} años, línea recta)</dt>
+            <dd class="cifra">Acumulada Bs {{ dep.acumulada|floatformat:2|intcomma }} · valor neto Bs {{ dep.neto|floatformat:2|intcomma }}</dd>
+            <dd><div class="barra" style="margin-top:6px" role="img" aria-label="{{ dep.porcentaje }} % depreciado"><span style="width:{{ dep.porcentaje }}%"></span></div></dd>
+        </dl>
+    </section>
+    <section class="tarjeta relleno" aria-label="Código QR" style="text-align:center">
+        <img src="{% url 'qr' a.pk %}" alt="Código QR de {{ a.codigo }}" width="180" height="180">
+        <p class="pequeno suave">El QR abre la <a href="{% url 'ficha_publica' a.token %}">ficha pública</a> sin iniciar sesión. Lleva un identificador aleatorio, no el código.</p>
+    </section>
+    {% if rol != 'consulta' and a.estado != 'baja' %}
+    <form method="post" action="{% url 'movimiento' a.pk %}" class="tarjeta relleno" aria-label="Registrar movimiento">
+        {% csrf_token %}
+        <h2 style="margin-bottom:12px">Registrar movimiento</h2>
+        {% for campo in form_mov %}<div class="campo"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}</div>{% endfor %}
+        <button class="boton" type="submit" style="width:100%">Registrar</button>
+    </form>
+    {% endif %}
+</div>
+
+<section class="tarjeta separado" aria-labelledby="t-hist">
+    <h2 id="t-hist">Historial</h2>
+    <div class="desplazable" style="margin-top:12px"><table>
+        <thead><tr><th>Fecha</th><th>Movimiento</th><th>De</th><th>A</th><th>Observación</th><th>Acta</th></tr></thead>
+        <tbody>{% for m in movimientos %}
+            <tr>
+                <td class="cifra">{{ m.fecha|date:'d/m/Y H:i' }}</td>
+                <td>{{ m.get_tipo_display }}</td>
+                <td>{% if m.tipo == 'traslado' %}{{ m.ubicacion_anterior }}{% elif m.tipo != 'alta' %}{{ m.responsable_anterior|default:'Sin responsable' }}{% endif %}</td>
+                <td>{% if m.tipo == 'traslado' or m.tipo == 'alta' %}{{ m.ubicacion_nueva }}{% else %}{{ m.responsable_nuevo|default:'Sin responsable' }}{% endif %}</td>
+                <td>{{ m.observacion }}</td>
+                <td>{% if m.tipo != 'alta' %}<a href="{% url 'acta' m.pk %}">PDF</a>{% endif %}</td>
+            </tr>
+        {% endfor %}</tbody>
+    </table></div>
+</section>
+
+<section class="tarjeta separado" aria-labelledby="t-mant">
+    <h2 id="t-mant">Mantenimientos</h2>
+    <div class="desplazable" style="margin-top:12px"><table>
+        <thead><tr><th>Programado</th><th>Tipo</th><th>Descripción</th><th>Realizado</th><th></th></tr></thead>
+        <tbody>{% for m in mantenimientos %}
+            <tr>
+                <td class="cifra">{{ m.programado|date:'d/m/Y' }}</td><td>{{ m.get_tipo_display }}</td><td>{{ m.descripcion }}</td>
+                <td>{% if m.realizado %}<span class="cifra">{{ m.realizado|date:'d/m/Y' }}</span>{% elif m.vencido %}<span class="estado error">Vencido</span>{% else %}<span class="estado alerta">Pendiente</span>{% endif %}</td>
+                <td>{% if not m.realizado and rol != 'consulta' %}<form method="post" action="{% url 'mantenimiento_realizado' m.pk %}">{% csrf_token %}<button class="boton secundario" type="submit">Marcar realizado</button></form>{% endif %}</td>
+            </tr>
+        {% empty %}<tr><td colspan="5" class="vacio">Sin mantenimientos.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% if rol != 'consulta' and a.estado != 'baja' %}
+    <form method="post" action="{% url 'mantenimiento' a.pk %}" class="filtros" style="border-top:1px solid var(--borde);border-bottom:0;align-items:flex-end">
+        {% csrf_token %}
+        {% for campo in form_mant %}<div><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}</div>{% endfor %}
+        <button class="boton" type="submit">Programar</button>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}

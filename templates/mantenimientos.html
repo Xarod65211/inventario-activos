@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block titulo %}Mantenimientos{% endblock %}
+{% block contenido %}
+<div class="encabezado"><div><h1>Mantenimientos</h1><p>Al marcar un preventivo como realizado se programa el siguiente según la categoría.</p></div>
+    <div class="acciones">
+        <a class="boton {% if vista != 'pendientes' %}secundario{% endif %}" href="?vista=pendientes">Pendientes</a>
+        <a class="boton {% if vista != 'realizados' %}secundario{% endif %}" href="?vista=realizados">Realizados</a>
+    </div>
+</div>
+<div class="tarjeta desplazable">
+    <table>
+        <thead><tr><th>{% if vista == 'realizados' %}Realizado{% else %}Programado{% endif %}</th><th>Activo</th><th>Tipo</th><th>Descripción</th><th>{% if vista == 'realizados' %}Registró{% else %}Situación{% endif %}</th></tr></thead>
+        <tbody>{% for m in pagina %}
+            <tr>
+                <td class="cifra">{% if vista == 'realizados' %}{{ m.realizado|date:'d/m/Y' }}{% else %}{{ m.programado|date:'d/m/Y' }}{% endif %}</td>
+                <td><a href="{{ m.activo.get_absolute_url }}">{{ m.activo }}</a></td>
+                <td>{{ m.get_tipo_display }}</td><td>{{ m.descripcion }}</td>
+                <td>{% if vista == 'realizados' %}{{ m.usuario.get_full_name|default:m.usuario.username|default:'—' }}{% elif m.vencido %}<span class="estado error">Vencido</span>{% else %}<span class="estado alerta">Pendiente</span>{% endif %}</td>
+            </tr>
+        {% empty %}<tr><td colspan="5" class="vacio">No hay mantenimientos en esta vista.</td></tr>{% endfor %}</tbody>
+    </table>
+    {% if pagina.has_other_pages %}<nav class="paginacion">{% if pagina.has_previous %}<a href="?vista={{ vista }}&pagina={{ pagina.previous_page_number }}">Anterior</a>{% endif %}<span class="suave">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>{% if pagina.has_next %}<a href="?vista={{ vista }}&pagina={{ pagina.next_page_number }}">Siguiente</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

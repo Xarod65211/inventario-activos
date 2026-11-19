@@ -1,0 +1,51 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block titulo %}Activos{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+    <div><h1>Activos</h1><p>{{ pagina.paginator.count }} activos con estos filtros</p></div>
+    <div class="acciones">
+        <a class="boton secundario" href="?{{ consulta }}&formato=xlsx">Descargar Excel</a>
+        {% if rol != 'consulta' %}<a class="boton" href="{% url 'activo_nuevo' %}">Registrar activo</a>{% endif %}
+    </div>
+</div>
+<div class="tarjeta">
+    <form class="filtros" method="get">
+        <input class="control" id="buscar" aria-label="Buscar" name="buscar" value="{{ filtros.buscar|default:'' }}" placeholder="Código, nombre, serie o responsable" style="min-width:260px">
+        <select class="control" name="categoria" aria-label="Categoría" onchange="this.form.submit()">
+            <option value="">Todas las categorías</option>
+            {% for c in categorias %}<option value="{{ c.pk }}" {% if filtros.categoria == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+        <select class="control" name="ubicacion" aria-label="Ubicación" onchange="this.form.submit()">
+            <option value="">Todas las ubicaciones</option>
+            {% for u in ubicaciones %}<option value="{{ u.pk }}" {% if filtros.ubicacion == u.pk|stringformat:'s' %}selected{% endif %}>{{ u }}</option>{% endfor %}
+        </select>
+        <select class="control" name="estado" aria-label="Estado" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            {% for v, t in estados %}<option value="{{ v }}" {% if filtros.estado == v %}selected{% endif %}>{{ t }}</option>{% endfor %}
+        </select>
+        <button class="boton secundario" type="submit">Buscar</button>
+    </form>
+    {% if pagina.object_list %}
+    <div class="desplazable"><table>
+        <thead><tr><th>Código</th><th>Activo</th><th>Categoría</th><th>Ubicación</th><th>Responsable</th><th>Estado</th></tr></thead>
+        <tbody>{% for a in pagina %}
+            <tr>
+                <td class="cifra"><a href="{{ a.get_absolute_url }}">{{ a.codigo }}</a></td>
+                <td>{{ a.nombre }}<div class="suave pequeno">{{ a.marca }} {{ a.modelo }}</div></td>
+                <td>{{ a.categoria }}</td>
+                <td>{{ a.ubicacion }}</td>
+                <td>{{ a.responsable|default:'—' }}</td>
+                <td><span class="estado {% if a.estado == 'operativo' %}ok{% elif a.estado == 'mantenimiento' %}alerta{% else %}neutro{% endif %}">{{ a.get_estado_display }}</span></td>
+            </tr>
+        {% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="vacio">No hay activos con estos filtros.</p>{% endif %}
+    {% if pagina.has_other_pages %}
+    <nav class="paginacion" aria-label="Paginación">
+        {% if pagina.has_previous %}<a href="?{{ consulta }}&pagina={{ pagina.previous_page_number }}">Anterior</a>{% endif %}
+        <span class="suave">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+        {% if pagina.has_next %}<a href="?{{ consulta }}&pagina={{ pagina.next_page_number }}">Siguiente</a>{% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

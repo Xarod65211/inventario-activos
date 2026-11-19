@@ -1,0 +1,6 @@
+.git
+db.sqlite3
+staticfiles
+docs
+__pycache__
+*.pyc
